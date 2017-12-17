@@ -34,7 +34,7 @@ class MultilabelDataLayerSync(caffe.Layer):
         params = eval(self.param_str)
 
         # Check the parameters for validity.
-        check_params(params)
+        # check_params(params)
 
         # store input as class variables
         self.batch_size = params['batch_size']
@@ -50,7 +50,7 @@ class MultilabelDataLayerSync(caffe.Layer):
         # Note the 20 channels (because PASCAL has 20 classes.)
         top[1].reshape(self.batch_size, 19)
 
-        print_info("MultilabelDataLayerSync", params)
+        # print_info("MultilabelDataLayerSync", params)
 
     def forward(self, bottom, top):
         """
@@ -97,29 +97,29 @@ class BatchLoader(object):
         all_x = np.load(osp.join(self.data_root, 'train_X.npy'))
         all_y = np.load(osp.join(self.data_root, 'train_binary_Y.npy'))
         self.mean_x = np.mean(all_x, axis=0)
+        np.save(osp.join(self.data_root, 'mean_X.npy'), self.mean_x)
 
-        num_all = len(all_x)
-        num_valid = num_all // 6
-        idx_list = np.arange(num_all)
-        shuffle(idx_list)
-        valid_idx_list = idx_list[:num_valid]
-        train_idx_list = idx_list[num_valid:]
-        train_x = all_x[train_idx_list]
-        train_y = all_y[train_idx_list]
-        valid_x = all_x[valid_idx_list]
-        valid_y = all_y[valid_idx_list]
+        # num_all = len(all_x)
+        # num_valid = num_all // 6
+        # idx_list = np.arange(num_all)
+        # shuffle(idx_list)
+        # valid_idx_list = idx_list[:num_valid]
+        # train_idx_list = idx_list[num_valid:]
+        # train_x = all_x[train_idx_list]
+        # train_y = all_y[train_idx_list]
+        # valid_x = all_x[valid_idx_list]
+        # valid_y = all_y[valid_idx_list]
         
-        if params['split'] == 'train':
-            self.x = train_x
-            self.y = train_y
-        else:
-            self.x = valid_x
-            self.y = valid_y
-        # self.im_shape = params['im_shape']
-        # get list of image indexes.
-        # list_file = params['split'] + '.txt'
-        # self.indexlist = [line.rstrip('\n') for line in open(
-        #     osp.join(self.pascal_root, 'ImageSets/Main', list_file))]
+        # if params['split'] == 'train':
+        #     # self.x = train_x
+        #     # self.y = train_y
+        #     self.x = all_x
+        #     self.y = all_y
+        # else:
+        #     self.x = valid_x
+        #     self.y = valid_y
+        self.x = all_x[params['idx']]
+        self.y = all_y[params['idx']]
         self._cur = -1  # current image
         # this class does some simple data-manipulations
         # self.transformer = SimpleTransformer()

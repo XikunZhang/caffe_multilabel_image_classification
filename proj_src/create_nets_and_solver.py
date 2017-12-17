@@ -132,11 +132,14 @@ def max_pool(bottom, ks, stride=1):
 
 
 # main netspec wrapper
-def caffenet_multilabel(data_layer_params, datalayer):
+def caffenet_multilabel(data_layer_params, datalayer=None):
     # setup the python data layer
     n = caffe.NetSpec()
-    n.data, n.label = L.Python(module='multilabel_datalayers', layer=datalayer,
-                               ntop=2, param_str=str(data_layer_params))
+    if data_layer_params['split'] != 'test':
+        n.data, n.label = L.Python(module='multilabel_datalayers', layer=datalayer,
+                                   ntop=2, param_str=str(data_layer_params))
+    else:
+        n.data = L.Input(shape=dict(dim=[1, 26, 31, 23]))
 
     # the net itself
     n.conv1, n.relu1 = conv_relu(n.data, 1, 96, stride=1, weight_filler={'type': 'xavier'})
@@ -154,7 +157,8 @@ def caffenet_multilabel(data_layer_params, datalayer):
     n.fc7, n.relu7 = fc_relu(n.drop6, 300, weight_filler={'type': 'xavier'})
     n.drop7 = L.Dropout(n.relu7, in_place=True)
     n.score = L.InnerProduct(n.drop7, num_output=19)
-    n.loss = L.SigmoidCrossEntropyLoss(n.score, n.label)
+    if data_layer_params['split'] != 'test':
+        n.loss = L.SigmoidCrossEntropyLoss(n.score, n.label)
 
     return str(n.to_proto())
 
@@ -166,7 +170,7 @@ def caffenet_multilabel(data_layer_params, datalayer):
 # In[11]:
 
 
-def write_nets():
+def write_nets(train_idx, valid_idx):
     if not os.path.isdir(workdir):
         os.makedirs(workdir)
 
@@ -174,13 +178,17 @@ def write_nets():
     # write train net.
     with open(osp.join(workdir, 'trainnet.prototxt'), 'w') as f:
         # provide parameters to the data layer as a python dictionary. Easy as pie!
-        data_layer_params = dict(batch_size=64, split='train', data_root=data_root)
+        data_layer_params = dict(batch_size=64, split='train_val', idx=train_idx, data_root=data_root)
         f.write(caffenet_multilabel(data_layer_params, 'MultilabelDataLayerSync'))
 
     # write validation net.
     with open(osp.join(workdir, 'valnet.prototxt'), 'w') as f:
-        data_layer_params = dict(batch_size=64, split='valid', data_root=data_root)
+        data_layer_params = dict(batch_size=64, split='train_val', idx=valid_idx, data_root=data_root)
         f.write(caffenet_multilabel(data_layer_params, 'MultilabelDataLayerSync'))
+
+    with open(osp.join(workdir, 'deploynet.prototxt'), 'w') as f:
+        data_layer_params = dict(split='test')
+        f.write(caffenet_multilabel(data_layer_params))
 
 # * This net uses a python datalayer: 'PascalMultilabelDataLayerSync', which is defined in './pycaffe/layers/pascal_multilabel_datalayers.py'.
 #
