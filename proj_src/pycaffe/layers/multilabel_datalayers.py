@@ -96,6 +96,8 @@ class BatchLoader(object):
         
         all_x = np.load(osp.join(self.data_root, 'train_X.npy'))
         all_y = np.load(osp.join(self.data_root, 'train_binary_Y.npy'))
+        self.mean_x = np.mean(all_x, axis=0)
+
         num_all = len(all_x)
         num_valid = num_all // 6
         idx_list = np.arange(num_all)
@@ -132,6 +134,7 @@ class BatchLoader(object):
         self._cur += 1
         # Did we finish an epoch?
         if self._cur == len(self.x):
+        # if self._cur == 20:
             self._cur = 0
             # shuffle(self.indexlist)
 
@@ -156,7 +159,7 @@ class BatchLoader(object):
         #     # class.
         #     multilabel[label - 1] = 1
 
-        return self.x[self._cur], self.y[self._cur]
+        return self.x[self._cur] - self.mean_x, self.y[self._cur]
 
 
 # def load_pascal_annotation(index, pascal_root):

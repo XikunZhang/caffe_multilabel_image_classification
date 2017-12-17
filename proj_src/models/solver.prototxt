@@ -1,11 +1,12 @@
 average_loss: 25
-base_lr: 0.01
+base_lr: 0.001
 display: 1
 gamma: 0.1
 iter_size: 1
 lr_policy: "step"
 max_iter: 100000
 momentum: 0.9
+momentum2: 0.999
 snapshot: 2500
 snapshot_prefix: "snapshot"
 stepsize: 10000
@@ -14,4 +15,5 @@ test_interval: 250
 test_iter: 100
 test_net: "/home/xikun/project/proj_src/models/valnet.prototxt"
 train_net: "/home/xikun/project/proj_src/models/trainnet.prototxt"
+type: "Adam"
 weight_decay: 0.0005

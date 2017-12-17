@@ -6,7 +6,7 @@ layer {
   python_param {
     module: "multilabel_datalayers"
     layer: "MultilabelDataLayerSync"
-    param_str: "{\'split\': \'valid\', \'data_root\': \'/home/xikun/project/CS446-project_data\', \'batch_size\': 64}"
+    param_str: "{\'data_root\': \'/home/xikun/project/CS446-project_data\', \'batch_size\': 64, \'split\': \'valid\'}"
   }
 }
 layer {
@@ -50,7 +50,7 @@ layer {
   top: "pool1"
   pooling_param {
     pool: MAX
-    kernel_size: 3
+    kernel_size: 2
     stride: 2
   }
 }
@@ -106,7 +106,7 @@ layer {
   top: "pool2"
   pooling_param {
     pool: MAX
-    kernel_size: 3
+    kernel_size: 2
     stride: 2
   }
 }
@@ -127,7 +127,7 @@ layer {
   bottom: "norm2"
   top: "fc6"
   inner_product_param {
-    num_output: 50
+    num_output: 300
     weight_filler {
       type: "xavier"
     }
@@ -155,7 +155,7 @@ layer {
   bottom: "fc6"
   top: "fc7"
   inner_product_param {
-    num_output: 50
+    num_output: 300
     weight_filler {
       type: "xavier"
     }
