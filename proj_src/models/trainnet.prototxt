@@ -6,7 +6,7 @@ layer {
   python_param {
     module: "multilabel_datalayers"
     layer: "MultilabelDataLayerSync"
-    param_str: "{\'batch_size\': 64, \'split\': \'train\', \'data_root\': \'/home/xikun/project/CS446-project_data\'}"
+    param_str: "{\'split\': \'train\', \'data_root\': \'/home/xikun/project/CS446-project_data\', \'batch_size\': 64}"
   }
 }
 layer {

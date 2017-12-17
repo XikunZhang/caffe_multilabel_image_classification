@@ -27,6 +27,7 @@ import os.path as osp
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import numpy as np
 
 import create_nets_and_solver as cnas
 
