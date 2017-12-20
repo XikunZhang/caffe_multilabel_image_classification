@@ -11,7 +11,7 @@ snapshot: 2500
 snapshot_prefix: "snapshot"
 stepsize: 10000
 test_initialization: false
-test_interval: 250
+test_interval: 25000
 test_iter: 100
 test_net: "/home/xikun/project/proj_src/models/valnet.prototxt"
 train_net: "/home/xikun/project/proj_src/models/trainnet.prototxt"

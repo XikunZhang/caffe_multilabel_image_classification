@@ -28,11 +28,9 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.model_selection import KFold
 
 import create_nets_and_solver as cnas
-
-# get_ipython().magic('matplotlib inline')
-plt.rcParams['figure.figsize'] = (6, 6)
 
 caffe_root = '~/caffe'  # this file is expected to be in {caffe_root}/examples
 sys.path.append(caffe_root + 'python')
@@ -57,14 +55,15 @@ parent_dir = osp.dirname(cur_dir)
 data_root = osp.join(parent_dir, 'CS446-project_data')
 workdir = osp.join(cur_dir, 'models')
 
-class CNN():
+
+class CNN(object):
     def __init__(self, train_idx, valid_idx):
         cnas.write_nets(train_idx, valid_idx)
 
         cnas.write_solver(
             display="1",
             test_iter="100",
-            test_interval="250",
+            test_interval="25000",
             base_lr="0.001",
             momentum="0.9",
             momentum2="0.999",
@@ -86,48 +85,31 @@ class CNN():
         print([(k, v.data.shape) for k, v in self.solver.net.blobs.items()])
         print([(k, v[0].data.shape) for k, v in self.solver.net.params.items()])
 
-
-    def train(self, niter, test_interval, test_iter):
-        niter = 10010
-        test_interval = 25
-        test_iter = 50
+    # def train(self, niter, test_iter, test_interval=None):
+    #     self.solver.step(niter)
+    #     return check_accuracy(self.solver.test_nets[0], test_iter)
+    def train(self, niter, test_interval, test_iter, idx):
         # losses will also be stored in the log
         train_loss = np.zeros(niter)
         train_acc = np.zeros(int(np.ceil(niter / test_interval)))
         test_acc = np.zeros(int(np.ceil(niter / test_interval)))
-        # output = np.zeros((niter, 8, 10))
 
         train_correct = 0
         train_batch_size = len(self.solver.net.blobs['label'].data)
         # the main solver loop
         for it in range(niter):
             self.solver.step(1)  # SGD by Caffe
-            # store the train loss
             train_loss[it] = self.solver.net.blobs['loss'].data
             gts = self.solver.net.blobs['label'].data
             ests = self.solver.net.blobs['score'].data > 0
             for gt, est in zip(gts, ests):
                 train_correct += np.array_equal(gt, est)
-            # store the output on the first test batch
-            # (start the forward pass at conv1 to avoid loading new data)
-            # solver.test_nets[0].forward(start='conv1')
-            # output[it] = solver.test_nets[0].blobs['score'].data[:8]
 
-            # run a full test every so often
-            # (Caffe can also do this for us and write to a log, but we show here
-            #  how to do it directly in Python, where more complicated things are easier.)
             if it % test_interval == 0:
                 print('Iteration', it, 'testing...')
-                # correct = 0
-                # for test_it in range(100):
-                #     solver.test_nets[0].forward()
-                #     print(solver.test_nets[0].blobs['label'].data.shape)
-                #     correct += sum(solver.test_nets[0].blobs['score'].data.argmax(1)
-                #                    == solver.test_nets[0].blobs['label'].data)
                 test_acc[it // test_interval] = check_accuracy(self.solver.test_nets[0], test_iter)
                 train_acc[it // test_interval] = train_correct / (train_batch_size * test_interval)
                 train_correct = 0
-
         # _, ax1 = plt.subplots()
         # ax2 = ax1.twinx()
         # # ax1.plot(np.arange(niter), train_loss)
@@ -139,18 +121,20 @@ class CNN():
         # ax2.set_ylabel('test accuracy')
         # ax2.set_title('Test Accuracy: {:.2f}'.format(test_acc[-1]))
 
+        plt.clf()
         plt.plot(test_interval * np.arange(len(train_acc)), train_acc, 'b', label='train')
         plt.plot(test_interval * np.arange(len(test_acc)), test_acc, 'r', label='validate')
         plt.xlabel('iteration')
         # ax1.set_ylabel('train loss')
         plt.ylabel('accuracy')
         plt.legend()
-        plt.title('Test Accuracy: {:.2f}'.format(test_acc[-1]))
-        plt.savefig('./models/learning_curve.png')
+        plt.title('Test Accuracy: {:.2f}'.format(np.mean(test_acc[-5:])))
+        plt.savefig('./models/learning_curve_{}.png'.format(idx))
 
 
 def hamming_similarity(gt, est):
     return sum([1 for (g, e) in zip(gt, est) if g == e]) / float(len(gt))
+
 
 def check_accuracy(net, num_batches, metric='accuracy_score'):
     batch_size = len(net.blobs['label'].data)
@@ -167,4 +151,28 @@ def check_accuracy(net, num_batches, metric='accuracy_score'):
                 acc += hamming_distance(gt, est)
     return acc / (num_batches * batch_size)
 
+
+def tenfold_cv():
+    num_all = 4602
+    valid_acc = []
+    kf = KFold(n_splits=)
+    for idx, tpl in enumerate(kf.split(range(num_all))):
+        train, valid = tpl
+        cnn = CNN(train, valid)
+        niter = 3000
+        acc = cnn.train(
+            niter=niter,
+            # test_iter = len(valid),
+            test_interval=100,
+            test_iter=100,
+            idx=idx
+        )
+    #     valid_acc.append(acc)
+    # print('valid_acc: ', valid_acc)
+    # return np.mean(valid_acc)
+
+
+if __name__ == '__main__':
+    # print(tenfold_cv())
+    tenfold_cv()
 

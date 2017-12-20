@@ -10,10 +10,9 @@ python_version  :2.7.11
 """
 
 import os.path as osp
-import glob
 import caffe
 import numpy as np
-from caffe.proto import caffe_pb2
+
 
 caffe.set_mode_gpu()
 

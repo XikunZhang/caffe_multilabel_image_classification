@@ -142,13 +142,14 @@ def caffenet_multilabel(data_layer_params, datalayer=None):
         n.data = L.Input(shape=dict(dim=[1, 26, 31, 23]))
 
     # the net itself
-    n.conv1, n.relu1 = conv_relu(n.data, 1, 96, stride=1, weight_filler={'type': 'xavier'})
+    n.conv1, n.relu1 = conv_relu(n.data, 2, 96, stride=1, weight_filler={'type': 'xavier'})
     n.pool1 = max_pool(n.relu1, 2, stride=2)
     n.norm1 = L.LRN(n.pool1, local_size=5, alpha=1e-4, beta=0.75)
-    n.conv2, n.relu2 = conv_relu(n.norm1, 1, 128, group=2, weight_filler={'type': 'xavier'})
+    n.conv2, n.relu2 = conv_relu(n.norm1, 2, 128, group=2, weight_filler={'type': 'xavier'})
     n.pool2 = max_pool(n.relu2, 2, stride=2)
     n.norm2 = L.LRN(n.pool2, local_size=5, alpha=1e-4, beta=0.75)
-    #     n.conv3, n.relu3 = conv_relu(n.norm2, 3, 384, pad=1)
+    # n.conv3, n.relu3 = conv_relu(n.norm2, 3, 384, pad=1)
+    # n.pool3 = max_pool(n.relu3, 3, stride=2)
     #     n.conv4, n.relu4 = conv_relu(n.relu3, 3, 384, pad=1, group=2)
     #     n.conv5, n.relu5 = conv_relu(n.relu4, 3, 256, pad=1, group=2)
     #     n.pool5 = max_pool(n.relu5, 3, stride=2)
@@ -178,12 +179,12 @@ def write_nets(train_idx, valid_idx):
     # write train net.
     with open(osp.join(workdir, 'trainnet.prototxt'), 'w') as f:
         # provide parameters to the data layer as a python dictionary. Easy as pie!
-        data_layer_params = dict(batch_size=64, split='train_val', idx=train_idx, data_root=data_root)
+        data_layer_params = dict(batch_size=64, split='train_val', idx=list(train_idx), data_root=data_root)
         f.write(caffenet_multilabel(data_layer_params, 'MultilabelDataLayerSync'))
 
     # write validation net.
     with open(osp.join(workdir, 'valnet.prototxt'), 'w') as f:
-        data_layer_params = dict(batch_size=64, split='train_val', idx=valid_idx, data_root=data_root)
+        data_layer_params = dict(batch_size=64, split='train_val', idx=list(valid_idx), data_root=data_root)
         f.write(caffenet_multilabel(data_layer_params, 'MultilabelDataLayerSync'))
 
     with open(osp.join(workdir, 'deploynet.prototxt'), 'w') as f:
